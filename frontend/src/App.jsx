@@ -1,6 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import TeacherAvatar from './components/TeacherAvatar';
 import TeacherStatus from './components/TeacherStatus';
+import LanguageSwitcher from './components/LanguageSwitcher';
+import {
+  LogoIcon,
+  GlobeIcon,
+  LearnIcon,
+  ProgressIcon,
+  HistoryIcon,
+  UploadIcon,
+  DocumentIcon,
+  CheckIcon,
+  PlayIcon,
+  PauseIcon,
+  VolumeIcon,
+  MuteIcon,
+  SparklesIcon,
+  TargetIcon,
+  LightbulbIcon,
+  ArrowRightIcon,
+} from './components/Icons';
 import {
   calculateMouthState,
   calculateEyeState,
@@ -130,6 +149,11 @@ export default function App() {
 
     fetchDocuments();
   }, []);
+
+  // Audio auto-cutoff: Stop any playing speech narration immediately when switching tabs, steps, or sections
+  useEffect(() => {
+    stopNarration();
+  }, [navTab, currentStep, currentSectionIndex]);
 
   // Quick Golden Demo Preset Loader
   const loadGoldenDemoPreset = () => {
@@ -801,11 +825,13 @@ export default function App() {
       {/* Top Navigation */}
       <header className="navbar">
         <div className="nav-brand">
-          <div className="brand-icon">🎓</div>
+          <div className="brand-icon">
+            <LogoIcon />
+          </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>AI Teacher</span>
-              <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', background: 'rgba(6, 182, 212, 0.15)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(6, 182, 212, 0.3)' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--accent-cyan)', background: 'rgba(6, 182, 212, 0.15)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(6, 182, 212, 0.3)', fontWeight: 600 }}>
                 JUDGE READY
               </span>
             </div>
@@ -819,8 +845,9 @@ export default function App() {
             className={`nav-tab-btn ${navTab === 'learn' ? 'active' : ''}`}
             id="tab-btn-learn"
             onClick={() => setNavTab('learn')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            📖 Learn
+            <LearnIcon /> Learn
           </button>
           <button
             type="button"
@@ -830,39 +857,31 @@ export default function App() {
               setNavTab('progress');
               loadDashboardData();
             }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            📊 Progress
+            <ProgressIcon /> Progress
           </button>
           <button
             type="button"
             className={`nav-tab-btn ${navTab === 'history' ? 'active' : ''}`}
             id="tab-btn-history"
             onClick={() => setNavTab('history')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            🕒 History
+            <HistoryIcon /> History
           </button>
         </div>
 
         {/* Top Right: Multilingual Switching & Readiness Indicator */}
         <div className="nav-status">
           {/* Quick Multilingual Language Switcher */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.85rem' }}>🌐</span>
-            <select
-              id="top-language-select"
-              className="form-select"
-              style={{ padding: '4px 10px', fontSize: '0.8rem', width: 'auto', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius-full)' }}
-              value={teachingLanguage}
-              onChange={(e) => handleSwitchLanguage(e.target.value)}
-            >
-              <option value="en">English (US)</option>
-              <option value="ta">தமிழ் (Tamil)</option>
-              <option value="hi">हिन्दी (Hindi)</option>
-              <option value="te">తెలుగు (Telugu)</option>
-              <option value="ml">മലയാളം (Malayalam)</option>
-              <option value="kn">ಕನ್ನಡ (Kannada)</option>
-            </select>
-          </div>
+          <LanguageSwitcher
+            currentLanguage={teachingLanguage}
+            onLanguageChange={handleSwitchLanguage}
+            languageMode={languageMode}
+            onModeChange={(mode) => handleSwitchLanguage(teachingLanguage, mode)}
+            isLoading={loading}
+          />
 
           {/* Judge Readiness Indicator */}
           <div
@@ -984,8 +1003,9 @@ export default function App() {
             className="btn-demo-preset"
             id="btn-load-golden-demo"
             onClick={loadGoldenDemoPreset}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
           >
-            ⚡ Quick Start: Load Golden Demo (Binary Trees • Alex Rivera • 15 min • Analogy-Driven)
+            <SparklesIcon /> Quick Start: Load Golden Demo (Binary Trees • Alex Rivera • 15 min • Analogy-Driven)
           </button>
 
           {demoNotice && (
@@ -1008,7 +1028,7 @@ export default function App() {
                   id="mode-topic-btn"
                 >
                   <div className="mode-card-header">
-                    <span>🌐</span>
+                    <GlobeIcon />
                     <span>General Topic Learning</span>
                   </div>
                   <div className="mode-card-desc">
@@ -1022,7 +1042,7 @@ export default function App() {
                   id="mode-document-btn"
                 >
                   <div className="mode-card-header">
-                    <span>📄</span>
+                    <DocumentIcon />
                     <span>Document-Grounded Learning (RAG)</span>
                   </div>
                   <div className="mode-card-desc">
@@ -1035,15 +1055,17 @@ export default function App() {
             {/* Document Upload & Selector Area (when in document mode) */}
             {knowledgeMode === 'document' && (
               <div style={{ marginBottom: '24px', background: 'rgba(99, 102, 241, 0.05)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid rgba(99, 102, 241, 0.2)' }} id="document-upload-section">
-                <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '8px' }}>
-                  📁 Ingest Educational Material
+                <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <DocumentIcon /> Ingest Educational Material
                 </h3>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
                   Upload PDF textbook chapters, Word documents (.docx), lecture slides (.pptx), or Markdown/Text notes.
                 </p>
 
                 <div className="dropzone-area">
-                  <div className="dropzone-icon">📤</div>
+                  <div className="dropzone-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px', color: 'var(--primary)' }}>
+                    <UploadIcon />
+                  </div>
                   <p style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
                     Select an educational document to ingest & index
                   </p>
@@ -1085,8 +1107,8 @@ export default function App() {
                         >
                           <div className="doc-item-title">{doc.filename}</div>
                           <div className="doc-item-meta">
-                            <span>📄 {doc.page_count} {doc.file_type === 'pptx' ? 'slides' : 'pages'}</span>
-                            <span>🧩 {doc.chunk_count} chunks</span>
+                            <span>{doc.page_count} {doc.file_type === 'pptx' ? 'slides' : 'pages'}</span>
+                            <span>{doc.chunk_count} chunks</span>
                             <span style={{ color: doc.status === 'ready' ? 'var(--accent-emerald)' : 'var(--accent-amber)', fontWeight: 600 }}>
                               {doc.status.toUpperCase()}
                             </span>
@@ -1169,12 +1191,12 @@ export default function App() {
                     fetchVoices(e.target.value);
                   }}
                 >
-                  <option value="en">🇬🇧 English</option>
-                  <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
-                  <option value="ta">🇮🇳 தமிழ் (Tamil)</option>
-                  <option value="te">🇮🇳 తెలుగు (Telugu)</option>
-                  <option value="ml">🇮🇳 മലയാളം (Malayalam)</option>
-                  <option value="kn">🇮🇳 ಕನ್ನಡ (Kannada)</option>
+                  <option value="en">English (US)</option>
+                  <option value="hi">हिन्दी (Hindi)</option>
+                  <option value="ta">தமிழ் (Tamil)</option>
+                  <option value="te">తెలుగు (Telugu)</option>
+                  <option value="ml">മലയാളം (Malayalam)</option>
+                  <option value="kn">ಕನ್ನಡ (Kannada)</option>
                 </select>
               </div>
 
@@ -1204,16 +1226,16 @@ export default function App() {
                 required
               />
               <div className="topic-pills">
-                <span className="topic-pill" onClick={() => setTopic('Binary Trees')}>🌳 Binary Trees</span>
-                <span className="topic-pill" onClick={() => setTopic("Ohm's Law")}>⚡ Ohm's Law & Circuits</span>
-                <span className="topic-pill" onClick={() => setTopic('Recursion & Call Stacks')}>🔄 Recursion</span>
-                <span className="topic-pill" onClick={() => setTopic('Sorting Algorithms')}>📊 Sorting Algorithms</span>
-                <span className="topic-pill" onClick={() => setTopic('Neural Network Forward Pass')}>🧠 Neural Networks</span>
+                <span className="topic-pill" onClick={() => setTopic('Binary Trees')}>Binary Trees</span>
+                <span className="topic-pill" onClick={() => setTopic("Ohm's Law")}>Ohm's Law & Circuits</span>
+                <span className="topic-pill" onClick={() => setTopic('Recursion & Call Stacks')}>Recursion</span>
+                <span className="topic-pill" onClick={() => setTopic('Sorting Algorithms')}>Sorting Algorithms</span>
+                <span className="topic-pill" onClick={() => setTopic('Neural Network Forward Pass')}>Neural Networks</span>
               </div>
             </div>
 
-            <button type="submit" className="btn-primary" id="btn-generate-plan" disabled={loading}>
-              {loading ? 'Synthesizing Curriculum...' : 'Generate Structured Lesson Plan →'}
+            <button type="submit" className="btn-primary" id="btn-generate-plan" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              {loading ? 'Synthesizing Curriculum...' : <>Generate Structured Lesson Plan <ArrowRightIcon /></>}
             </button>
           </form>
         </section>
@@ -1313,7 +1335,7 @@ export default function App() {
                 onClick={() => setStudioViewMode('video')}
                 id="btn-mode-video"
               >
-                🎬 Video Studio
+                Video Studio
               </button>
               <button
                 className={`btn-secondary ${studioViewMode === 'reading' ? 'active' : ''}`}
@@ -1321,7 +1343,7 @@ export default function App() {
                 onClick={() => setStudioViewMode('reading')}
                 id="btn-mode-reading"
               >
-                📄 Reading View
+                Reading View
               </button>
             </div>
           </div>
@@ -1334,15 +1356,17 @@ export default function App() {
               {/* Phase 6: Language & Voice Deck Bar */}
               <div className="language-deck-bar" id="bar-language-deck">
                 <div className="language-deck-left">
-                  <span className="lang-badge">🌐 Language:</span>
+                  <span className="lang-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <GlobeIcon /> Language:
+                  </span>
                   <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                     {[
-                      { code: 'en', label: '🇬🇧 English' },
-                      { code: 'hi', label: '🇮🇳 हिन्दी' },
-                      { code: 'ta', label: '🇮🇳 தமிழ்' },
-                      { code: 'te', label: '🇮🇳 తెలుగు' },
-                      { code: 'ml', label: '🇮🇳 മലയാളം' },
-                      { code: 'kn', label: '🇮🇳 ಕನ್ನಡ' },
+                      { code: 'en', label: 'English' },
+                      { code: 'hi', label: 'हिन्दी' },
+                      { code: 'ta', label: 'தமிழ்' },
+                      { code: 'te', label: 'తెలుగు' },
+                      { code: 'ml', label: 'മലയാളം' },
+                      { code: 'kn', label: 'ಕನ್ನಡ' },
                     ].map((item) => (
                       <button
                         key={item.code}
@@ -1403,7 +1427,7 @@ export default function App() {
                     >
                       {availableVoices.map((v) => (
                         <option key={v.voice_id} value={v.voice_id}>
-                          🗣️ {v.name} ({v.gender})
+                          {v.name} ({v.gender})
                         </option>
                       ))}
                     </select>
@@ -1421,15 +1445,15 @@ export default function App() {
                     onClick={() => setUseRealTts(!useRealTts)}
                     id="btn-toggle-tts-engine"
                   >
-                    {useRealTts ? '⚡ Real TTS (Edge)' : '🌐 Web Speech'}
+                    {useRealTts ? 'Real TTS (Edge)' : 'Web Speech'}
                   </button>
 
                   {/* Audio Status Pill */}
                   <div className={`voice-status-badge ${audioStatus === 'generating' ? 'generating' : ''}`} id="badge-voice-status">
-                    {audioStatus === 'generating' && '⏳ Synthesizing...'}
-                    {audioStatus === 'playing_tts' && '🔊 Neural Voice'}
-                    {audioStatus === 'playing_browser' && '🗣️ Web Speech'}
-                    {audioStatus === 'idle' && (isPlaying ? '▶️ Playing' : '⏸️ Ready')}
+                    {audioStatus === 'generating' && 'Synthesizing...'}
+                    {audioStatus === 'playing_tts' && 'Neural Voice'}
+                    {audioStatus === 'playing_browser' && 'Web Speech'}
+                    {audioStatus === 'idle' && (isPlaying ? 'Playing' : 'Ready')}
                   </div>
                 </div>
               </div>
@@ -1475,7 +1499,7 @@ export default function App() {
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', width: '100%', justifyContent: 'center' }}>
                     <button
                       className="btn-secondary"
-                      style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                      style={{ fontSize: '0.8rem', padding: '6px 12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                       onClick={() => {
                         if (isPlaying) {
                           stopNarration();
@@ -1485,11 +1509,11 @@ export default function App() {
                       }}
                       id="btn-play-narration"
                     >
-                      {isPlaying ? '⏸️ Pause Narration' : '▶️ Play Narration'}
+                      {isPlaying ? <><PauseIcon /> Pause Narration</> : <><PlayIcon /> Play Narration</>}
                     </button>
                     <button
                       className="btn-secondary"
-                      style={{ fontSize: '0.8rem', padding: '6px 10px' }}
+                      style={{ fontSize: '0.8rem', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                       onClick={() => {
                         setVoiceEnabled(!voiceEnabled);
                         if (isPlaying) stopNarration();
@@ -1497,7 +1521,7 @@ export default function App() {
                       id="btn-toggle-voice"
                       title={voiceEnabled ? 'Mute Speech' : 'Enable Speech'}
                     >
-                      {voiceEnabled ? '🔊 Voice ON' : '🔇 Muted'}
+                      {voiceEnabled ? <><VolumeIcon /> Voice ON</> : <><MuteIcon /> Muted</>}
                     </button>
                   </div>
 
@@ -1531,18 +1555,18 @@ export default function App() {
 
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <span className="visual-type-badge" id="badge-visual-type">
-                        {scenePlan?.scenes?.[activeSceneIndex]?.visual_specification?.visual_type === 'tree_diagram' && '🌳 Binary Tree SVG'}
-                        {scenePlan?.scenes?.[activeSceneIndex]?.visual_specification?.visual_type === 'circuit_diagram' && '⚡ Circuit Schematic'}
-                        {scenePlan?.scenes?.[activeSceneIndex]?.visual_specification?.visual_type === 'code' && '💻 Code Block'}
-                        {scenePlan?.scenes?.[activeSceneIndex]?.visual_specification?.visual_type === 'equation' && '📐 Math Equation'}
-                        {(!scenePlan?.scenes?.[activeSceneIndex]?.visual_specification?.visual_type || scenePlan?.scenes?.[activeSceneIndex]?.visual_specification?.visual_type === 'text') && '📌 Conceptual Model'}
-                        {scenePlan?.scenes?.[activeSceneIndex]?.visual_specification?.visual_type === 'flowchart' && '🔀 Flowchart'}
+                        {scenePlan?.scenes?.[activeSceneIndex]?.visual_specification?.visual_type === 'tree_diagram' && 'Binary Tree SVG'}
+                        {scenePlan?.scenes?.[activeSceneIndex]?.visual_specification?.visual_type === 'circuit_diagram' && 'Circuit Schematic'}
+                        {scenePlan?.scenes?.[activeSceneIndex]?.visual_specification?.visual_type === 'code' && 'Code Block'}
+                        {scenePlan?.scenes?.[activeSceneIndex]?.visual_specification?.visual_type === 'equation' && 'Math Equation'}
+                        {(!scenePlan?.scenes?.[activeSceneIndex]?.visual_specification?.visual_type || scenePlan?.scenes?.[activeSceneIndex]?.visual_specification?.visual_type === 'text') && 'Conceptual Model'}
+                        {scenePlan?.scenes?.[activeSceneIndex]?.visual_specification?.visual_type === 'flowchart' && 'Flowchart'}
                       </span>
 
                       {/* Grounded Citation Badge */}
                       {scenePlan?.scenes?.[activeSceneIndex]?.source_references?.[0] && (
-                        <span style={{ fontSize: '0.72rem', background: 'rgba(6, 182, 212, 0.15)', color: 'var(--accent-cyan)', padding: '3px 8px', borderRadius: '4px', border: '1px solid rgba(6, 182, 212, 0.3)' }}>
-                          📄 {scenePlan.scenes[activeSceneIndex].source_references[0].filename} ({scenePlan.scenes[activeSceneIndex].source_references[0].location})
+                        <span style={{ fontSize: '0.72rem', background: 'rgba(6, 182, 212, 0.15)', color: 'var(--accent-cyan)', padding: '3px 8px', borderRadius: '4px', border: '1px solid rgba(6, 182, 212, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <DocumentIcon /> {scenePlan.scenes[activeSceneIndex].source_references[0].filename} ({scenePlan.scenes[activeSceneIndex].source_references[0].location})
                         </span>
                       )}
                     </div>
@@ -1588,7 +1612,7 @@ export default function App() {
 
                   {/* Onscreen Key Takeaway */}
                   <div style={{ marginTop: '12px', background: 'rgba(255, 255, 255, 0.04)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-                    <span style={{ fontSize: '1rem' }}>🎯</span>
+                    <span style={{ color: 'var(--accent-cyan)' }}><TargetIcon /></span>
                     <span><strong>Key Principle:</strong> {scenePlan?.scenes?.[activeSceneIndex]?.onscreen_text || teachingResponse.key_takeaway}</span>
                   </div>
                 </div>
@@ -1615,8 +1639,8 @@ export default function App() {
                         {scn.scene_type === 'intro' && '1. Intro'}
                         {scn.scene_type === 'visual_explanation' && '2. Visual Model'}
                         {scn.scene_type === 'analogy_walkthrough' && '3. Walkthrough'}
-                        {scn.scene_type === 'adaptive_remediation' && '⚡ 3-R. Remediation'}
-                        {scn.scene_type === 'checkpoint_prompt' && '❓ 4. Checkpoint'}
+                        {scn.scene_type === 'adaptive_remediation' && '3-R. Remediation'}
+                        {scn.scene_type === 'checkpoint_prompt' && '4. Checkpoint'}
                         {!['intro', 'visual_explanation', 'analogy_walkthrough', 'adaptive_remediation', 'checkpoint_prompt'].includes(scn.scene_type) && `${idx + 1}. Scene`}
                       </span>
                     </button>
@@ -1645,12 +1669,12 @@ export default function App() {
 
                   <button
                     className="btn-primary"
-                    style={{ padding: '6px 14px', fontSize: '0.85rem' }}
+                    style={{ padding: '6px 14px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     id="btn-proceed-question"
                     onClick={handleFetchQuestion}
                     disabled={loading}
                   >
-                    {loading ? 'Preparing Checkpoint...' : 'Check My Understanding (Question) →'}
+                    {loading ? 'Preparing Checkpoint...' : <>Check My Understanding <ArrowRightIcon /></>}
                   </button>
                 </div>
               </div>
@@ -1664,20 +1688,22 @@ export default function App() {
 
               {teachingResponse.analogy && (
                 <div className="analogy-card" id="card-analogy">
-                  <div className="analogy-title">💡 Intuitive Analogy</div>
+                  <div className="analogy-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <LightbulbIcon /> Intuitive Analogy
+                  </div>
                   <p style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{teachingResponse.analogy}</p>
                 </div>
               )}
 
               {teachingResponse.example && (
                 <div className="example-card" id="card-example">
-                  <div className="example-title">🛠️ Concrete Example</div>
+                  <div className="example-title">Concrete Example</div>
                   <p style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{teachingResponse.example}</p>
                 </div>
               )}
 
               <div className="key-takeaway" id="card-takeaway">
-                <span style={{ fontSize: '1.2rem' }}>🎯</span>
+                <span style={{ color: 'var(--accent-emerald)' }}><TargetIcon /></span>
                 <span><strong>Key Principle:</strong> {teachingResponse.key_takeaway}</span>
               </div>
 
@@ -1765,14 +1791,14 @@ export default function App() {
                 className="btn-secondary"
                 id="btn-toggle-hint"
                 onClick={() => setShowHints(!showHints)}
-                style={{ fontSize: '0.82rem', padding: '6px 14px' }}
+                style={{ fontSize: '0.82rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
-                💡 {showHints ? 'Hide Hint' : 'Need a Hint?'}
+                <LightbulbIcon /> {showHints ? 'Hide Hint' : 'Need a Hint?'}
               </button>
               {showHints && (
                 <div style={{ marginTop: '10px', padding: '12px 16px', background: 'rgba(255,255,255,0.04)', borderRadius: 'var(--radius-sm)', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                   {currentQuestion.hints.map((h, i) => (
-                    <p key={i}>🔍 {h}</p>
+                    <p key={i}>Hint: {h}</p>
                   ))}
                 </div>
               )}
@@ -1786,8 +1812,9 @@ export default function App() {
               id="btn-submit-answer"
               onClick={handleSubmitAnswer}
               disabled={loading || (!selectedOption && !studentAnswer.trim())}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              {loading ? 'Evaluating Response...' : 'Submit Answer for Diagnostic Evaluation →'}
+              {loading ? 'Evaluating Response...' : <>Submit Answer for Diagnostic Evaluation <ArrowRightIcon /></>}
             </button>
           </div>
         </section>
@@ -1820,7 +1847,9 @@ export default function App() {
 
             {evaluationOutcome.evaluation.strengths && evaluationOutcome.evaluation.strengths.length > 0 && (
               <div style={{ marginTop: '12px' }}>
-                <strong style={{ fontSize: '0.85rem', color: 'var(--accent-emerald)' }}>✅ Strengths Detected:</strong>
+                <strong style={{ fontSize: '0.85rem', color: 'var(--accent-emerald)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <CheckIcon /> Strengths Detected:
+                </strong>
                 <ul style={{ paddingLeft: '18px', marginTop: '4px', fontSize: '0.9rem' }}>
                   {evaluationOutcome.evaluation.strengths.map((s, i) => (
                     <li key={i}>{s}</li>
@@ -1831,7 +1860,7 @@ export default function App() {
 
             {evaluationOutcome.evaluation.missing_concepts && evaluationOutcome.evaluation.missing_concepts.length > 0 && (
               <div style={{ marginTop: '10px' }}>
-                <strong style={{ fontSize: '0.85rem', color: 'var(--accent-amber)' }}>⚠️ Missing Nuances:</strong>
+                <strong style={{ fontSize: '0.85rem', color: 'var(--accent-amber)' }}>Missing Nuances:</strong>
                 <ul style={{ paddingLeft: '18px', marginTop: '4px', fontSize: '0.9rem' }}>
                   {evaluationOutcome.evaluation.missing_concepts.map((m, i) => (
                     <li key={i}>{m}</li>
@@ -1844,7 +1873,7 @@ export default function App() {
           {/* HERO ADAPTIVE MOMENT: Centerpiece of Hackathon Demo */}
           {(evaluationOutcome.misconception?.is_misconception || evaluationOutcome.evaluation.score < 0.7) && (
             <div className="hero-adaptation-banner animate-fade-in" id="hero-adaptation-banner">
-              <div className="hero-tag">🎓 The Adaptive Moment: Real-Time Pedagogical Shift</div>
+              <div className="hero-tag">The Adaptive Moment: Real-Time Pedagogical Shift</div>
               <h3 style={{ fontSize: '1.2rem', color: '#ffffff', marginBottom: '4px' }}>
                 Teacher Noticed a Misunderstanding
               </h3>
@@ -1855,7 +1884,7 @@ export default function App() {
               <div className="hero-pedagogical-grid">
                 <div className="hero-box noticed">
                   <div className="hero-box-title">
-                    <span>🔍</span> What I Noticed:
+                    What I Noticed:
                   </div>
                   <div>
                     {evaluationOutcome.misconception?.flawed_mental_model ||
@@ -1865,7 +1894,7 @@ export default function App() {
 
                 <div className="hero-box will-change">
                   <div className="hero-box-title">
-                    <span>💡</span> What I'll Change:
+                    What I'll Change:
                   </div>
                   <div>
                     {evaluationOutcome.adaptation?.strategy ||
@@ -1918,7 +1947,7 @@ export default function App() {
 
                 {reEvalSubmitted && reEvalPassed && (
                   <div className="re-evaluation-success-banner animate-fade-in" style={{ marginTop: '14px' }}>
-                    <span style={{ fontSize: '1.4rem' }}>✨</span>
+                    <span style={{ color: '#10b981' }}><CheckIcon /></span>
                     <div>
                       <div style={{ fontWeight: 700, color: '#10b981' }}>Understanding Improved!</div>
                       <div style={{ fontSize: '0.85rem', color: '#d1fae5' }}>
@@ -2046,24 +2075,24 @@ export default function App() {
           {/* Concepts Understood & Needing Improvement */}
           <div className="report-section-grid">
             <div className="traceable-card">
-              <div className="traceable-title" style={{ color: 'var(--accent-emerald)' }}>
-                ✅ Concepts Understood ({learningReport.concepts_understood.length})
+              <div className="traceable-title" style={{ color: 'var(--accent-emerald)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <CheckIcon /> Concepts Understood ({learningReport.concepts_understood.length})
               </div>
               <div className="mastery-chips" style={{ marginTop: '8px' }}>
                 {learningReport.concepts_understood.map((c, i) => (
-                  <span key={i} className="mastery-chip mastered">✓ {c}</span>
+                  <span key={i} className="mastery-chip mastered">{c}</span>
                 ))}
               </div>
             </div>
 
             <div className="traceable-card">
               <div className="traceable-title" style={{ color: 'var(--accent-amber)' }}>
-                ⚡ Concepts Needing Practice ({learningReport.concepts_needing_improvement.length})
+                Concepts Needing Practice ({learningReport.concepts_needing_improvement.length})
               </div>
               <div className="mastery-chips" style={{ marginTop: '8px' }}>
                 {learningReport.concepts_needing_improvement.length > 0 ? (
                   learningReport.concepts_needing_improvement.map((c, i) => (
-                    <span key={i} className="mastery-chip struggling">⚡ {c}</span>
+                    <span key={i} className="mastery-chip struggling">{c}</span>
                   ))
                 ) : (
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>All core concepts passed successfully!</span>
@@ -2106,8 +2135,9 @@ export default function App() {
                 setLessonPlan(null);
                 setLearningReport(null);
               }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              Start Next Topic: {learningReport.next_topic_recommendation.split('&')[0].trim()} →
+              Start Next Topic: {learningReport.next_topic_recommendation.split('&')[0].trim()} <ArrowRightIcon />
             </button>
 
             <button
@@ -2118,8 +2148,9 @@ export default function App() {
                 setNavTab('progress');
                 loadDashboardData();
               }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              📊 View Learner Dashboard
+              <ProgressIcon /> View Learner Dashboard
             </button>
 
             <button
@@ -2147,7 +2178,7 @@ export default function App() {
               <h1 className="card-title">Learner Progress Dashboard</h1>
               <p className="card-subtitle">Comprehensive mastery tracking, memory consolidation, and personalized curriculum path for <strong>{learnerName}</strong>.</p>
             </div>
-            <button className="btn-secondary" style={{ fontSize: '0.82rem' }} onClick={loadDashboardData}>🔄 Refresh</button>
+            <button className="btn-secondary" style={{ fontSize: '0.82rem' }} onClick={loadDashboardData}>Refresh</button>
           </div>
 
           <div className="dashboard-grid">
@@ -2181,7 +2212,7 @@ export default function App() {
               <div className="traceable-title" style={{ color: 'var(--accent-emerald)' }}>Mastered Concepts</div>
               <div className="mastery-chips" style={{ marginTop: '8px' }}>
                 {(conceptsMastered.length > 0 ? conceptsMastered : ['Binary Tree Hierarchy', 'Leaf Node Topology']).map((c, i) => (
-                  <span key={i} className="mastery-chip mastered">✓ {c}</span>
+                  <span key={i} className="mastery-chip mastered">{c}</span>
                 ))}
               </div>
             </div>
@@ -2190,7 +2221,7 @@ export default function App() {
               <div className="traceable-title" style={{ color: 'var(--accent-amber)' }}>Reinforcing Concepts</div>
               <div className="mastery-chips" style={{ marginTop: '8px' }}>
                 {(conceptsNeedingWork.length > 0 ? conceptsNeedingWork : ['Tree Traversal Mechanics']).map((c, i) => (
-                  <span key={i} className="mastery-chip struggling">⚡ {c}</span>
+                  <span key={i} className="mastery-chip struggling">{c}</span>
                 ))}
               </div>
             </div>

@@ -18,53 +18,73 @@ export default function TeacherStatus({
   const getEmotionLabel = () => {
     switch (emotion) {
       case 'welcoming':
-        return '🌟 Welcoming';
+        return 'Welcoming';
       case 'explaining':
-        return '💡 Explaining';
+        return 'Explaining';
       case 'encouraging':
-        return '🤝 Encouraging';
+        return 'Encouraging';
       case 'thoughtful':
-        return '🤔 Thoughtful';
+        return 'Thoughtful';
       case 'celebrating':
-        return '🎉 Celebrating';
+        return 'Celebrating';
       default:
-        return '💡 Explaining';
+        return 'Explaining';
     }
   };
 
   const getGestureLabel = () => {
     switch (gesture) {
       case 'welcome':
-        return '👋 Welcoming';
+        return 'Welcoming';
       case 'point_visual':
       case 'point_right':
-        return '👉 Pointing to Visual';
+        return 'Pointing to Visual';
       case 'point_left':
-        return '👈 Indicating Content';
+        return 'Indicating Content';
       case 'think':
-        return '🤔 Posing Question';
+        return 'Posing Question';
       case 'encourage':
-        return '🤝 Encouraging Focus';
+        return 'Encouraging Focus';
       case 'celebrate':
-        return '🎉 Celebrating Mastery';
+        return 'Celebrating Mastery';
       case 'explain':
       default:
-        return '💬 Lecturing';
+        return 'Lecturing';
     }
   };
 
   const getTimingFidelityBadge = () => {
-    if (!speaking) return <span className="fidelity-badge idle">⏸️ Idle</span>;
+    if (!speaking) return (
+      <span className="fidelity-badge idle">
+        <span className="dot dot-idle"></span> Standby
+      </span>
+    );
     switch (timingMode) {
       case 'word_cues':
-        return <span className="fidelity-badge word-sync" title="Sub-second word boundary synchronization">🟢 Word-Sync (Edge TTS)</span>;
+        return (
+          <span className="fidelity-badge word-sync" title="Sub-second word boundary synchronization">
+            <span className="dot dot-emerald"></span> Word-Sync (Edge TTS)
+          </span>
+        );
       case 'sentence_cues':
-        return <span className="fidelity-badge sentence-sync" title="Sentence timestamp pacing">🟡 Sentence-Sync</span>;
+        return (
+          <span className="fidelity-badge sentence-sync" title="Sentence timestamp pacing">
+            <span className="dot dot-amber"></span> Sentence-Sync
+          </span>
+        );
       case 'browser_speech':
-        return <span className="fidelity-badge browser-speech" title="In-browser speech synthesis">🔵 Web Speech</span>;
+        return (
+          <span className="fidelity-badge browser-speech" title="In-browser speech synthesis">
+            <span className="dot dot-cyan"></span> Web Speech
+          </span>
+        );
       case 'deterministic':
       default:
-        return <span className="fidelity-badge deterministic">⚪ Cadence Sync</span>;
+        return (
+          <span className="fidelity-badge deterministic">
+            <span className="dot dot-muted"></span> Cadence Sync
+          </span>
+        );
     }
   };
 
@@ -100,9 +120,10 @@ export default function TeacherStatus({
           title="Toggle animation intensity for reduced motion accessibility"
           aria-pressed={reducedMotion}
         >
-          {reducedMotion ? '⚡ Motion: Reduced' : '✨ Motion: Normal'}
+          {reducedMotion ? 'Motion: Reduced' : 'Motion: Smooth'}
         </button>
       </div>
     </div>
   );
 }
+
